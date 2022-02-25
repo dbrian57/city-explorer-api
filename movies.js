@@ -9,9 +9,13 @@ try {
 
   let getMovieObject = await axios.get(url);
 
+  if(getMovieObject.data.length === 0) {
+    response.status(444).send('No movies available for this city')
+  }
+
   let movieToSend = getMovieObject.data.results.map(movie => new Movies(movie.title, movie.release_date, movie.overview));
   response.send(movieToSend);
-  
+
   } catch (error) {
     throw new Error('Movies Currently Unavailable')
   }
