@@ -1,37 +1,37 @@
-'use strict'
+'use strict';
 
 const express = require('express');
-
 const app = express();
-
-require('dotenv').config();
+const cors = require('cors');
+const weather = require('./modules/weather.js');
+const movies = require('./modules/movies.js');
 const PORT = process.env.PORT || 3001;
 
-const cors = require('cors');
+require('dotenv').config();
+
 app.use(cors());
+app.get('/weather', weatherHandler);
+app.get('/movies', movieHandler);
 
-const axios = require('axios');
+function weatherHandler(request, response) {
+  const { lat, lon } = request.query;
+  weather(lat, lon)
+  .then(summaries => response.send(summaries))
+  .catch((error) => {
+    console.error(error);
+    response.status(500).send('No weather data available')
+  });
+}
 
-const getMovies = require('./movies.js');
-const getWeather = require('./weather');
-
-app.get('/', (request, response) => {
-    response.send("Hello, from server!")}
-    );
-
-// Test Weather URL http://localhost:3001/weather?searchQuery=Seattle&lon=-122.332069&lat=47.606209
-
-// Test Movies URL http://localhost:3001/movies?searchQuery=Seattle
-
-app.get('/movies', getMovies);
-
-app.get('/weather', getWeather);
+function movieHandler(request, response) {
+  const searchQuery = request.query.searchQuery;
+  movies(searchQuery)
+  .then(summaries => response.send(summaries))
+  .catch((error) => {
+    console.error(error);
+    response.status(500).send('No movies data available')
+  });
+}  
 
 
-
-app.use((error, request, response, next) => {
-  console.log(error.message);
-  response.status(500).send(error.message);
-});
-
-app.listen(PORT, (() => console.log(`Listening on port ${PORT}`)));
+app.listen(PORT, () => console.log(`Server up on ${PORT}`));
